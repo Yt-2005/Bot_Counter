@@ -150,7 +150,6 @@ public class MyBot extends TelegramLongPollingBot {
 
         switch (text.toLowerCase()) {
 
-            // ── /start ──
             case "/start":
                 sendMsg(chatId, String.format(
                     kh(chatId,
@@ -159,14 +158,12 @@ public class MyBot extends TelegramLongPollingBot {
                     ), name));
                 break;
 
-            // ── /update ──
             case "/update":
                 sendMsg(chatId, kh(chatId,
                     "🔄 Bot ត្រូវបាន Update រួចហើយ! Menu បានផ្ទុកឡើងវិញ ✅",
                     "🔄 Bot updated! Menu reloaded successfully ✅"));
                 break;
 
-            // ── /lang ──
             case "/lang":
                 if (isKh(chatId)) {
                     userLang.put(chatId, "en");
@@ -177,7 +174,6 @@ public class MyBot extends TelegramLongPollingBot {
                 }
                 break;
 
-            // ── /help ──
             case "/help":
                 sendMsg(chatId, kh(chatId,
                     "📋 *Command ទាំងអស់*\n\n" +
@@ -208,7 +204,6 @@ public class MyBot extends TelegramLongPollingBot {
                     "🌐 /lang   — Toggle language"));
                 break;
 
-            // ── /count ──
             case "/count":
                 if (activeGames.containsKey(chatId)) {
                     sendMsg(chatId, kh(chatId,
@@ -226,7 +221,6 @@ public class MyBot extends TelegramLongPollingBot {
                 }
                 break;
 
-            // ── /random ──
             case "/random":
                 if (activeGames.containsKey(chatId)) {
                     sendMsg(chatId, kh(chatId,
@@ -244,7 +238,6 @@ public class MyBot extends TelegramLongPollingBot {
                 }
                 break;
 
-            // ── /stop ──
             case "/stop":
                 if (counting.compareAndSet(true, false)) {
                     sendMsg(chatId, kh(chatId, "⏹️ ឈប់រាប់ហើយ!", "⏹️ Stopped!"));
@@ -255,7 +248,6 @@ public class MyBot extends TelegramLongPollingBot {
                 }
                 break;
 
-            // ── /game ──
             case "/game":
                 if (counting.get()) {
                     sendMsg(chatId, kh(chatId,
@@ -275,7 +267,6 @@ public class MyBot extends TelegramLongPollingBot {
                 }
                 break;
 
-            // ── /quit ──
             case "/quit":
                 GameState gs = activeGames.remove(chatId);
                 if (gs != null) {
@@ -290,12 +281,10 @@ public class MyBot extends TelegramLongPollingBot {
                 }
                 break;
 
-            // ── /stats ──
             case "/stats":
                 sendStats(chatId);
                 break;
 
-            // ── /clear ──
             case "/clear":
                 boolean wasRunning = counting.getAndSet(false);
                 boolean hadGame    = activeGames.remove(chatId) != null;
@@ -314,7 +303,6 @@ public class MyBot extends TelegramLongPollingBot {
                 }
                 break;
 
-            // ── /flip ──
             case "/flip":
                 boolean heads = new Random().nextBoolean();
                 sendMsg(chatId, heads
@@ -322,7 +310,6 @@ public class MyBot extends TelegramLongPollingBot {
                     : kh(chatId, "🪙 *ចុង!* (Tails)", "🪙 *Tails!*"));
                 break;
 
-            // ── /dice ──
             case "/dice":
                 int roll = new Random().nextInt(6) + 1;
                 String[] diceFaces = {"⚀","⚁","⚂","⚃","⚄","⚅"};
@@ -332,7 +319,6 @@ public class MyBot extends TelegramLongPollingBot {
                     diceFaces[roll - 1], roll));
                 break;
 
-            // ── /joke ──
             case "/joke":
                 int j = new Random().nextInt(JOKES_KH.length);
                 sendMsg(chatId, isKh(chatId) ? JOKES_KH[j][0] : JOKES_KH[j][1]);
@@ -345,9 +331,6 @@ public class MyBot extends TelegramLongPollingBot {
         }
     }
 
-    // ══════════════════════════════════════════
-    //   GAME GUESS
-    // ══════════════════════════════════════════
     private void handleGameGuess(String chatId, String text) {
         GameState gs = activeGames.get(chatId);
         if (gs == null) return;
@@ -382,9 +365,6 @@ public class MyBot extends TelegramLongPollingBot {
         }
     }
 
-    // ══════════════════════════════════════════
-    //   STATS
-    // ══════════════════════════════════════════
     private void sendStats(String chatId) {
         UserStats st = getStats(chatId);
         String winRate    = st.gamesPlayed == 0 ? "0"
@@ -407,9 +387,6 @@ public class MyBot extends TelegramLongPollingBot {
             st.gamesPlayed, st.gamesWon, winRate, avgGuesses, st.firstSeen));
     }
 
-    // ══════════════════════════════════════════
-    //   COUNTER — 3 THREADS
-    // ══════════════════════════════════════════
     private void startCounter(String chatId, AtomicBoolean counting) {
         counting.set(true);
         int[]    delays = {400, 700, 1100};
@@ -428,9 +405,6 @@ public class MyBot extends TelegramLongPollingBot {
         }
     }
 
-    // ══════════════════════════════════════════
-    //   RANDOM — 3 THREADS
-    // ══════════════════════════════════════════
     private void startRandom(String chatId, AtomicBoolean counting) {
         counting.set(true);
         int[]    delays = {50, 80, 110};
@@ -454,15 +428,12 @@ public class MyBot extends TelegramLongPollingBot {
         }
     }
 
-    // ══════════════════════════════════════════
-    //   SEND MESSAGE — keyboard always shown
-    // ══════════════════════════════════════════
     private void sendMsg(String chatId, String text) {
         SendMessage msg = new SendMessage();
         msg.setChatId(chatId);
         msg.setText(text);
         msg.setParseMode("Markdown");
-        msg.setReplyMarkup(buildKeyboard(chatId)); // ← Always attach keyboard
+        msg.setReplyMarkup(buildKeyboard(chatId));
         try { execute(msg); }
         catch (TelegramApiException e) {
             System.err.println("Send error [" + chatId + "]: " + e.getMessage());
@@ -475,6 +446,25 @@ public class MyBot extends TelegramLongPollingBot {
     public static void main(String[] args) {
         System.setOut(new java.io.PrintStream(System.out, true, StandardCharsets.UTF_8));
         System.setErr(new java.io.PrintStream(System.err, true, StandardCharsets.UTF_8));
+
+        // ── HTTP Server សម្រាប់ Render (Port 8080) ──
+        new Thread(() -> {
+            try {
+                com.sun.net.httpserver.HttpServer server =
+                    com.sun.net.httpserver.HttpServer.create(
+                        new java.net.InetSocketAddress(8080), 0);
+                server.createContext("/", exchange -> {
+                    byte[] response = "Bot is running!".getBytes();
+                    exchange.sendResponseHeaders(200, response.length);
+                    exchange.getResponseBody().write(response);
+                    exchange.getResponseBody().close();
+                });
+                server.start();
+                System.out.println("HTTP Server started on port 8080");
+            } catch (Exception e) {
+                System.err.println("HTTP Server error: " + e.getMessage());
+            }
+        }).start();
 
         try {
             MyBot bot = new MyBot();
